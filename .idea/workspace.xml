@@ -5,27 +5,43 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3f53a318-2996-4154-ad3e-99c455df84f2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.rspec" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.rubocop.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CODE_OF_CONDUCT.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gemfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LICENSE.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Rakefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bin/console" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bin/setup" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs.rb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/version.rb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rrx_jobs.gemspec" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/spec/rrx_jobs_spec.rb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/spec/spec_helper.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/controllers/rrx_jobs/jobs_controller.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/jobs/concerns/job_logging.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/jobs/concerns/job_validation.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/jobs/rrx_job.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/views/rrx_jobs/jobs/_job.json.jbuilder" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/views/rrx_jobs/jobs/index.json.jbuilder" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/routes.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/base.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/group.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/jobs.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/metrics.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/queue.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/configuration/worker.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/controller_extensions.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/engine.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/job_manager.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/job_stats.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/metric_reporter.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/queue_manager.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/rrx_jobs/queue_worker.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/rrx_jobs.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/rrx_jobs.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/rrx_jobs.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/rrx_jobs.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rrx_jobs.gemspec" beforeDir="false" afterPath="$PROJECT_DIR$/rrx_jobs.gemspec" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Ruby File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -45,14 +61,44 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "//wsl$/Ubuntu/home/dan/rrx/rrx_jobs",
+    "com.intellij.lang.ruby.rbs.tools.collection.workspace.sync.RbsCollectionUpdateProjectActivity#LAST_UPDATE_TIMESTAMP": "1750978656153",
+    "git-widget-placeholder": "ddrew-init",
+    "last_opened_file_path": "//wsl$/Ubuntu/home/dan/dev/rrx/rrx_jobs/app",
     "ruby.rails.projectView.checked": "true",
     "ruby.structure.view.model.defaults.configured": "true",
     "settings.editor.selected.configurable": "preferences.sourceCode"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\dan\dev\rrx\rrx_jobs\app" />
+      <recent name="\\wsl$\Ubuntu\home\dan\dev\rrx\rrx_jobs\lib\rrx_jobs" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SpringUtil" SPRING_PRE_LOADER_OPTION="true" RAKE_SPRING_PRE_LOADER_OPTION="true" RAILS_SPRING_PRE_LOADER_OPTION="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3f53a318-2996-4154-ad3e-99c455df84f2" name="Changes" comment="" />
+      <created>1750978595858</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750978595858</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WfRunsListSearchHistory">{
+  &quot;history&quot;: [
+    {
+    },
+    {
+    },
+    {
+    }
+  ],
+  &quot;lastFilter&quot;: {
+  }
+}</component>
 </project>
