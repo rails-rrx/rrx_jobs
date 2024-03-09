@@ -235,11 +235,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  rake (~> 13.0)
   rrx_dev
   rrx_jobs!
-  rspec (~> 3.0)
-  rubocop (~> 1.21)
 
 BUNDLED WITH
    2.4.10
