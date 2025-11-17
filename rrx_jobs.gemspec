@@ -34,7 +34,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'delayed_job_active_record'
   spec.add_dependency 'rrx_config'
   spec.add_dependency 'rrx_logging'
   spec.add_development_dependency 'rrx_dev'
+  spec.add_development_dependency 'rrx_api'
 end
