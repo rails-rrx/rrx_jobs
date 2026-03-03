@@ -1,55 +1,48 @@
 module RrxJobs
   class JobManager
     class << self
-      delegate :all, :arel_table, to: Delayed::Job
-
       def reset
-        pending.delete_all
-        failed.delete_all
+        SolidQueue::FailedExecution.all.delete_all
+        SolidQueue::ReadyExecution.all.delete_all
       end
 
       def pending
-        Delayed::Job.where(failed_at: nil, locked_at: nil)
+        SolidQueue::Job.where(finished_at: nil)
+                       .where.not(id: SolidQueue::ClaimedExecution.select(:job_id))
+                       .where.not(id: SolidQueue::FailedExecution.select(:job_id))
       end
 
       def failed
-        Delayed::Job.where.not(failed_at: nil)
+        SolidQueue::Job.where(id: SolidQueue::FailedExecution.select(:job_id))
       end
 
       def running
-        Delayed::Job.where(failed_at: nil).where.not(locked_at: nil)
+        SolidQueue::Job.where(id: SolidQueue::ClaimedExecution.select(:job_id))
       end
 
-      def failed_condition(failed = true)
-        arel_table[:failed_at].send(failed ? :not_eq : :eq, nil)
+      def all
+        SolidQueue::Job.all
       end
 
-      def locked_condition(locked = true)
-        arel_table[:locked_at].send(locked ? :not_eq : :eq, nil)
-      end
-
-      def pending_condition
-        failed_condition(false).and locked_condition(false)
-      end
-
-      def running_condition
-        failed_condition(false).and locked_condition
-      end
-
-      # Order by running, pending then failed
+      # Order by running=0, pending=1, failed=2.
+      # Uses a searched CASE (no base expression) so each WHEN can be an IN subquery.
       def state_order
-        Arel.case
-            .when(running_condition).then(0)
-            .when(pending_condition).then(1)
-            .else(2)
+        job_table = SolidQueue::Job.arel_table
+        claimed   = SolidQueue::ClaimedExecution.select(:job_id)
+        failed    = SolidQueue::FailedExecution.select(:job_id)
+
+        Arel::Nodes::Case.new
+                         .when(job_table[:id].in(claimed.arel)).then(0)
+                         .when(job_table[:id].in(failed.arel)).then(2)
+                         .else(1)
       end
 
-      # Order by queued execution time, most recent first
+      # Order by scheduled time, most recent first
       def queue_order(reverse: false)
-        arel_table[:run_at].send(reverse ? :asc : :desc)
+        SolidQueue::Job.arel_table[:scheduled_at].send(reverse ? :asc : :desc)
       end
 
-      # @return [RrxJobs::JobConfiguration]
+      # @return [RrxJobs::Configuration::Jobs]
       def config
         Rails.configuration.job
       end
