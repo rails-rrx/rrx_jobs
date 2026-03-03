@@ -7,29 +7,30 @@ module RrxJobs
 
       def initialize
         @pending = 0
-        @failed = 0
+        @failed  = 0
         @running = 0
       end
 
       def add(row)
-        @pending += row['pending']
-        @failed += row['failed']
-        @running += row['running']
+        @pending += row['pending'].to_i
+        @failed  += row['failed'].to_i
+        @running += row['running'].to_i
       end
     end
 
     class << self
       def stats(groups: true, total: true)
-        # @type [Hash<Symbol, StatBucket>]
         buckets = Hash[buckets_for(JobManager.config.queues)]
         buckets.update Hash[buckets_for(JobManager.config.groups.values)] if groups
         buckets[:total] = total_bucket = StatBucket.new if total
 
         db_stats.each do |queue, row|
           queue_config = JobManager.config.queues_by_name[queue]
-          buckets[queue].add row
-          buckets[queue_config.group].add row if groups && queue_config.group
-          total_bucket.add row if total
+          next unless queue_config
+
+          buckets[queue]&.add(row)
+          buckets[queue_config.group]&.add(row) if groups && queue_config.group
+          total_bucket.add(row) if total
         end
 
         buckets
@@ -38,44 +39,44 @@ module RrxJobs
       private
 
       def db_stats
-        table = Delayed::Job.arel_table
-        run_at, locked_at, failed_at = table[:run_at], table[:locked_at], table[:failed_at]
+        jobs     = SolidQueue::Job.arel_table
+        claimed  = SolidQueue::ClaimedExecution.arel_table
+        failed   = SolidQueue::FailedExecution.arel_table
+        ready    = SolidQueue::ReadyExecution.arel_table
 
-        query = table.project(
-          table[:queue],
-          Arel::Nodes::Case.new
-                           .when(run_at.not_eq(nil).and locked_at.eq(nil).and failed_at.eq(nil))
-                           .then(1).else(0).sum.as('pending'),
-          Arel::Nodes::Case.new
-                           .when(failed_at.eq(nil).and locked_at.not_eq(nil))
-                           .then(1).else(0).sum.as('running'),
-          Arel::Nodes::Case.new
-                           .when(failed_at.not_eq(nil))
-                           .then(1).else(0).sum.as('failed'),
-          ).group(1).order(1)
+        # LEFT JOINs to determine state per job
+        query = jobs
+          .project(
+            jobs[:queue_name],
+            Arel::Nodes::Case.new
+              .when(claimed[:job_id].not_eq(nil)).then(0).else(1).sum.as('running'),
+            Arel::Nodes::Case.new
+              .when(failed[:job_id].not_eq(nil)).then(0).else(1)
+              .then(Arel::Nodes::Case.new
+                .when(claimed[:job_id].eq(nil).and(failed[:job_id].eq(nil))).then(1).else(0))
+              .sum.as('pending'),
+            Arel::Nodes::Case.new
+              .when(failed[:job_id].not_eq(nil)).then(1).else(0).sum.as('failed')
+          )
+          .join(claimed, Arel::Nodes::OuterJoin)
+          .on(jobs[:id].eq(claimed[:job_id]))
+          .join(failed, Arel::Nodes::OuterJoin)
+          .on(jobs[:id].eq(failed[:job_id]))
+          .where(jobs[:finished_at].eq(nil))
+          .group(jobs[:queue_name])
+          .order(jobs[:queue_name])
 
-        results = Delayed::Job.connection.select_all(query).to_a
-
-        results.index_by { |r| normalized_queue_name(r.delete('queue')).to_sym }
+        results = SolidQueue::Job.connection.select_all(query).to_a
+        results.index_by { |r| normalized_queue_name(r.delete('queue_name')).to_sym }
       end
 
       def normalized_queue_name(name)
-        prefix = Rails.application.config.active_job.queue_name_prefix || ''
-        prefix.length > 0 ? name.delete_prefix(prefix + '_') : name
-      end
-
-      def stats_sum(stats, *keys)
-        summary = {'pending' => 0, 'failed' => 0, 'running' => 0 }
-        stats.each do |queue, queue_stats|
-          if keys.empty? or keys.include? queue
-            queue_stats.each { |stat, value| summary[stat] += value }
-          end
-        end
-        summary
+        prefix = Rails.application.config.active_job.queue_name_prefix.presence || ''
+        prefix.length > 0 ? name.delete_prefix("#{prefix}_") : name
       end
 
       def buckets_for(list)
-        list.map{|it| [it.name, StatBucket.new]}
+        list.map { |it| [it.name, StatBucket.new] }
       end
     end
   end

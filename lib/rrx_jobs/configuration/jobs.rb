@@ -1,7 +1,5 @@
 require 'active_model'
 require 'active_support/core_ext'
-require 'didja_rails/types'
-require 'delayed_job_active_record'
 require_relative 'worker'
 require_relative 'queue'
 require_relative 'group'
@@ -10,7 +8,6 @@ require_relative 'metrics'
 module RrxJobs::Configuration
   class Jobs < Base
     attribute :sleep_delay, :integer, default: 30
-    attribute :max_attempts, :integer, default: 5
     attribute :max_run_time, :duration, default: 1.hours
 
     # @return [Array<QueueConfiguration>]
@@ -22,10 +19,6 @@ module RrxJobs::Configuration
     validates_numericality_of :sleep_delay,
                               only_integer: true,
                               greater_than: 0
-
-    validates_numericality_of :max_attempts,
-                              only_integer: true,
-                              greater_than_or_equal_to: 0
 
     validates_inclusion_of :max_run_time,
                            in: 30.seconds..6.hours,
@@ -77,25 +70,30 @@ module RrxJobs::Configuration
     end
 
     ##
-    # Return queue configs for DelayedJob worker
-    def queue_attributes
-      queues!.index_by(&:name).transform_values do |queue|
-        { priority: queue.priority }
+    # Return queue names for solid_queue configuration
+    def queue_names_with_priority
+      queues!.map { |q| { name: q.name.to_s, priority: q.priority } }
+    end
+
+    def apply!(app)
+      if queues
+        # Push global timing settings to solid_queue via Rails config
+        app.config.solid_queue.polling_interval  = sleep_delay
+        app.config.solid_queue.shutdown_timeout  = max_run_time
       end
     end
 
-    def apply!
-      if queues
-        # Only initialize if the project has configured queues
-        Delayed::Worker.destroy_failed_jobs = false
-        Delayed::Worker.sleep_delay = sleep_delay
-        Delayed::Worker.max_attempts = max_attempts
-        Delayed::Worker.max_run_time = max_run_time
-        Delayed::Worker.read_ahead = 1
-        Delayed::Worker.logger = Rails.logger.scoped(name: 'delayed-job')
-        Delayed::Worker.default_priority = 100
-        Delayed::Worker.queue_attributes = queue_attributes
-      end
+    # Translate the Ruby DSL into the options hash accepted by
+    # SolidQueue::Supervisor.start (workers: [...], dispatchers: [...]).
+    def to_solid_queue_options
+      {
+        workers: workers!.map do |w|
+          { queues: w.queues.map(&:to_s), threads: w.worker_count, processes: 1 }
+        end,
+        dispatchers: [
+          { polling_interval: sleep_delay, batch_size: 500 }
+        ]
+      }
     end
 
     private
