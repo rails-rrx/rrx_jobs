@@ -49,11 +49,9 @@ module RrxJobs
           .project(
             jobs[:queue_name],
             Arel::Nodes::Case.new
-              .when(claimed[:job_id].not_eq(nil)).then(0).else(1).sum.as('running'),
+              .when(claimed[:job_id].not_eq(nil)).then(1).else(0).sum.as('running'),
             Arel::Nodes::Case.new
-              .when(failed[:job_id].not_eq(nil)).then(0).else(1)
-              .then(Arel::Nodes::Case.new
-                .when(claimed[:job_id].eq(nil).and(failed[:job_id].eq(nil))).then(1).else(0))
+              .when(claimed[:job_id].eq(nil).and(failed[:job_id].eq(nil))).then(1).else(0)
               .sum.as('pending'),
             Arel::Nodes::Case.new
               .when(failed[:job_id].not_eq(nil)).then(1).else(0).sum.as('failed')

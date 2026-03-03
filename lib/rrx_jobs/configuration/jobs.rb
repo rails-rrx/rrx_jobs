@@ -62,7 +62,7 @@ module RrxJobs::Configuration
     end
 
     def queue_names
-      queues_by_name.keys
+      queues_by_name.keys.map(&:to_sym)
     end
 
     def queue_or_group?(name)
@@ -111,7 +111,7 @@ module RrxJobs::Configuration
     def validate_config
       worker_queues = Set.new
 
-      if workers&.empty?
+      if workers.nil? || workers.empty?
         errors.add :workers, 'cannot be empty'
       else
         workers&.each_with_index do |w, i|
@@ -124,7 +124,7 @@ module RrxJobs::Configuration
         end
       end
 
-      if queues&.empty?
+      if queues.nil? || queues.empty?
         errors.add :queues, 'cannot be empty'
       else
         queues&.each do |q|

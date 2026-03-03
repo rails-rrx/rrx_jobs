@@ -24,15 +24,16 @@ module RrxJobs
         SolidQueue::Job.all
       end
 
-      # Order by running, pending, then failed
+      # Order by running=0, pending=1, failed=2.
+      # Uses a searched CASE (no base expression) so each WHEN can be an IN subquery.
       def state_order
         job_table = SolidQueue::Job.arel_table
         claimed   = SolidQueue::ClaimedExecution.select(:job_id)
         failed    = SolidQueue::FailedExecution.select(:job_id)
 
-        Arel::Nodes::Case.new(job_table[:id])
-                         .when(Arel::Nodes::In.new(job_table[:id], claimed.arel)).then(0)
-                         .when(Arel::Nodes::In.new(job_table[:id], failed.arel)).then(2)
+        Arel::Nodes::Case.new
+                         .when(job_table[:id].in(claimed.arel)).then(0)
+                         .when(job_table[:id].in(failed.arel)).then(2)
                          .else(1)
       end
 

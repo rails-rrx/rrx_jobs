@@ -8,18 +8,13 @@ require File.expand_path('../spec/dummy/config/environment', __dir__)
 abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'rspec/rails'
 
-# Pre-load support files
+# Pre-load support files (use __dir__ so files in spec/support/ are found,
+# not spec/dummy/spec/support/)
 require 'rrx_dev/spec'
-Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
+Dir[File.join(__dir__, 'support/**/*.rb')].sort.each { |f| require f }
 
-# Checks for pending migrations and applies them before tests are run.
-# If you are not using ActiveRecord, you can remove these lines.
-begin
-  ActiveRecord::Migration.maintain_test_schema!
-rescue ActiveRecord::PendingMigrationError => e
-  Rails.logger.debug e.to_s.strip
-  exit 1 # rubocop:disable Rails/Exit
-end
+# Solid queue tables are created inline via spec/support/solid_queue_schema.rb
+# so we skip the standard migration check.
 
 RSpec.configure do |config|
   config.use_transactional_fixtures = true

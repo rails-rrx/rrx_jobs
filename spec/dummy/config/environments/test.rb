@@ -16,4 +16,9 @@ Rails.application.configure do
   config.active_support.disallowed_deprecation_warnings = []
   config.action_controller.perform_caching = false
   config.action_controller.allow_forgery_protection = false
+
+  # Solid queue tables are created inline via spec/support/solid_queue_schema.rb.
+  # Skip the automatic migration check so engine-provided migration files do not
+  # cause a PendingMigrationError during test boot.
+  config.active_record.maintain_test_schema = false
 end
